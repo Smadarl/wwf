@@ -9,7 +9,7 @@ import (
 func main() {
 	nova := supernova.New()
 
-	nova.All("", optionHeaders)
+	nova.Use(optionHeaders)
 
 	models.RegisterRoutes(nova)
 
@@ -20,8 +20,9 @@ func main() {
 
 }
 
-func optionHeaders(req *supernova.Request) {
+func optionHeaders(req *supernova.Request, next func()) {
 	fmt.Println(req.GetMethod() + string(req.Request.URI().Path()))
 	req.Response.Header.Set("Access-Control-Allow-Origin", "*")
 	req.Response.Header.Set("Access-Control-Allow-Headers", "Authorization")
+	next()
 }

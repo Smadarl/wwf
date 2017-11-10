@@ -1,0 +1,25 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "CufB1JIomKNNZpsSYt8G2XgioF4=",
+			"path": "github.com/cznic/mathutil",
+			"revision": "09cde8d5df5fd3e1944897ce6d00d83dd5ed3a91",
+			"revisionTime": "2017-10-15T09:38:39Z"
+		},
+		{
+			"checksumSHA1": "Y/t3trtei7dkADWEVv8WiPuYv60=",
+			"path": "github.com/go-ini/ini",
+			"revision": "f280b3ba517bf5fc98922624f21fb0e7a92adaec",
+			"revisionTime": "2017-10-26T18:46:43Z"
+		},
+		{
+			"checksumSHA1": "AHk1Y+L/rkf1jKAmqttDefEWeJw=",
+			"path": "github.com/tchap/go-patricia/patricia",
+			"revision": "5ad6cdb7538b0097d5598c7e57f0a24072adf7dc",
+			"revisionTime": "2017-09-01T15:15:52Z"
+		}
+	],
+	"rootPath": "github.com/Smadarl/wwf"
+}

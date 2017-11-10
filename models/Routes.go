@@ -1,7 +1,7 @@
 package models
 
 import (
-	"encoding/json"
+	//	"encoding/json"
 	"fmt"
 	"github.com/Smadarl/wwf/classes/DB"
 	"github.com/Smadarl/wwf/classes/Response"
@@ -55,27 +55,27 @@ func authenticate(req *Supernova.Request, next func()) {
 		next()
 		return
 	}
-	path := string(req.Ctx.Path())
+	path := string(req.Path())
 	if path != "/login" {
 		var tokenStr string
 		var header []byte
-		header = req.Ctx.Request.Header.Peek("Authorization")
+		header = req.Request.Header.Peek("Authorization")
 		tokenBytes := getTokenFromHeader(header)
 		if len(tokenBytes) > 0 {
 			tokenStr = string(tokenBytes)
 			token, err := jwt.Parse(tokenStr, getJwtKey)
 			if err != nil {
-				req.SendJson(Response.Error(Response.ErrInvalidToken))
+				req.JSON(402, Response.Error(Response.ErrInvalidToken))
 			} else {
 				claims, _ := token.Claims.(jwt.MapClaims)
 				pid, _ := strconv.Atoi(claims["jti"].(string))
-				req.Ctx.SetUserValue("token", token)
-				req.Ctx.SetUserValue("UserID", pid)
+				req.SetUserValue("token", token)
+				req.SetUserValue("UserID", pid)
 				curAuthToken = token
 				next()
 			}
 		} else {
-			req.SendJson(Response.Error(Response.ErrUnauthorized))
+			req.JSON(401, Response.Error(Response.ErrUnauthorized))
 		}
 	} else {
 		next()
@@ -83,41 +83,42 @@ func authenticate(req *Supernova.Request, next func()) {
 }
 
 func getPlayer(req *Supernova.Request) {
-	req.Ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
-	req.Ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
-	id, err := strconv.Atoi(req.RouteParams["id"])
+	req.Response.Header.Set("Access-Control-Allow-Origin", "*")
+	req.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
+	id, err := strconv.Atoi(req.RouteParam("id"))
 	if err != nil {
-		req.SendJson(Response.Error(Response.ErrDataInput))
+		req.JSON(200, Response.Error(Response.ErrDataInput))
 	} else {
-		conn := DB.GetConnection()
+		conn, _ := DB.GetConnection()
 		defer conn.Close()
 		player, err := GetPlayerByID(conn, id)
 		if err != nil {
-			req.SendJson(Response.Error(Response.ErrDataNotFound))
+			req.JSON(200, Response.Error(Response.ErrDataNotFound))
 		} else {
-			req.SendJson(player)
+			req.JSON(200, player)
 		}
 	}
 }
 
 func playerLogin(req *Supernova.Request) {
-	req.Ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
-	conn := DB.GetConnection()
+	req.Response.Header.Set("Access-Control-Allow-Origin", "*")
+	conn, _ := DB.GetConnection()
 	defer conn.Close()
 	var loginForm loginForm
-	err := json.Unmarshal(req.Body, &loginForm)
+	err := req.ReadJSON(&loginForm)
+	//	err := json.Unmarshal(req.Body, &loginForm)
 	if err != nil {
 		fmt.Println(err)
-		req.SendJson(Response.Error(Response.ErrInternal))
+		req.JSON(500, Response.Error(Response.ErrInternal))
 		return
 	}
 	player, err := GetPlayerByName(conn, loginForm.Username)
 	if err != nil {
-		req.SendJson(Response.Error(Response.ErrUserNotFound))
+		req.JSON(401, Response.Error(Response.ErrUserNotFound))
 		return
 	}
 	if player.Password != loginForm.Password {
-		req.SendJson(Response.Error(Response.ErrUserNotFound))
+		req.JSON(401, Response.Error(Response.ErrUserNotFound))
 		return
 	}
 	t := time.Now()
@@ -133,7 +134,7 @@ func playerLogin(req *Supernova.Request) {
 		Token:   ss,
 		Expires: t.Unix(),
 	}
-	req.SendJson(rt)
+	req.JSON(200, rt)
 }
 
 func playerFriends(req *Supernova.Request) {
