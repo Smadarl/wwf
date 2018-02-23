@@ -46,6 +46,9 @@ func GetFriends(db *sql.DB, id int) ([]*Player, error) {
 	var fid int
 	objects := make([]*Player, 0)
 	rows, err := db.Query("select FriendID FROM Friend WHERE PlayerID = ?", id)
+	if err != nil {
+		return objects, err
+	}
 	for rows.Next() {
 		err = rows.Scan(&fid)
 		if err != nil {

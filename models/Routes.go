@@ -9,12 +9,11 @@ import (
 	"time"
 
 	Supernova "github.com/MordFustang21/supernova"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 )
 
 //JWTSigningKey - key to use for signing tokens
-var JWTSigningKey = []byte("SayTheSameThing")
-var curAuthToken *jwt.Token
+var JWTSigningKey = []byte("SayTheSameThing") // You bought me a dog?
 
 //RequestError - Error message to send back
 type RequestError struct {
@@ -38,11 +37,11 @@ type TokenResponse struct {
 
 // RegisterRoutes - setup routes in supernova
 func RegisterRoutes(nova *Supernova.Server) {
-	nova.Get("/player/:id", getPlayer)
-	nova.Post("/login", playerLogin)
-	nova.Get("/friends", playerFriends)
-	nova.Get("/game/:id", getGame)
-	nova.Get("/games", getGames)
+	nova.Get("/api/player/:id", getPlayer)
+	nova.Post("/api/login", playerLogin)
+	nova.Get("/api/friends", playerFriends)
+	nova.Get("/api/game/:id", getGame)
+	nova.Get("/api/games", getGames)
 	//	nova.Post(VERSION + "/player/:id", postListing)
 	//	nova.Put(VERSION + "/player/:id", putListing)
 	//	nova.Delete(VERSION + "/player/:id", deleteListing)
@@ -56,7 +55,7 @@ func authenticate(req *Supernova.Request, next func()) {
 		return
 	}
 	path := string(req.Path())
-	if path != "/login" {
+	if path != "/api/login" {
 		var tokenStr string
 		var header []byte
 		header = req.Request.Header.Peek("Authorization")
@@ -71,7 +70,6 @@ func authenticate(req *Supernova.Request, next func()) {
 				pid, _ := strconv.Atoi(claims["jti"].(string))
 				req.SetUserValue("token", token)
 				req.SetUserValue("UserID", pid)
-				curAuthToken = token
 				next()
 			}
 		} else {
@@ -139,12 +137,9 @@ func playerLogin(req *Supernova.Request) {
 
 func playerFriends(req *Supernova.Request) {
 	req.Response.Header.Set("Access-Control-Allow-Origin", "*")
-	var token *jwt.Token
-	token = req.UserValue("token").(*jwt.Token)
-	claims, _ := token.Claims.(jwt.MapClaims)
+	var pid = req.UserValue("UserID").(int)
 	conn, _ := DB.GetConnection()
 	defer conn.Close()
-	pid, _ := strconv.Atoi(claims["jti"].(string))
 	friends, err := GetFriends(conn, pid)
 	if err != nil {
 		fmt.Println(err)
